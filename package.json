@@ -1,0 +1,29 @@
+{
+  "name": "simple-form-data",
+  "version": "0.0.0",
+  "description": "Simple builder to create form-data to be send via nodejs' http/https module without using any npm packages.",
+  "scripts": {
+    "test": "ava",
+    "lint": "standard \"src/**/*.js\" --fix"
+  },
+  "devDependencies": {
+    "ava": "^2.2.0",
+    "esm": "^3.2.25",
+    "standard": "^13.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/borisskert/simple-multipart-form-data.js.git"
+  },
+  "author": "",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/borisskert/simple-multipart-form-data.js/issues"
+  },
+  "homepage": "https://github.com/borisskert/simple-multipart-form-data.js#readme",
+  "ava": {
+    "require": [
+      "esm"
+    ]
+  }
+}

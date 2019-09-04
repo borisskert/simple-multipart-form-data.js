@@ -8,6 +8,8 @@ No build necessary! Just copy the file `multipart-form-data.js` into your projec
 
 ## Usage
 
+### Build and send multipart form-data 
+
 Append key/value pairs:
 
 ```javascript
@@ -60,4 +62,19 @@ query.on('error', (e) => {
 
 query.write(formData.body);
 query.end();
+```
+
+### Parse multipart form-data request
+
+```javascript
+ const headers = ...
+ const body = ...
+ const parsedBody = MultipartFormData(headers, body).parse()
+```
+
+## Run tests
+
+```bash
+$ npm install
+$ npm run test
 ```
