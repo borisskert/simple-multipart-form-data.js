@@ -75,6 +75,10 @@ export function MultipartFormData (headers, body) {
     const contentTypePattern = /multipart\/form-data; boundary=-[-]+(.+)/gi
     const match = contentTypePattern.exec(contentType)
 
+    if (!match) {
+      throw new Error(`Content-Type '${contentType}' is incorrect`)
+    }
+
     return match[1]
   }
 
@@ -122,7 +126,7 @@ export function MultipartFormData (headers, body) {
     return bodyLines.map(line => matchPropertyLine(boundary, line))
       .filter(match => !!match)
       .map(match => ({ [match[1]]: match[2] }))
-      .reduce((keyValuePair, obj) => ({ ...obj, ...keyValuePair }))
+      .reduce((keyValuePair, obj) => ({ ...obj, ...keyValuePair }), {})
   }
 
   function parseFiles (boundary, body) {
@@ -148,6 +152,11 @@ export function MultipartFormData (headers, body) {
 
   function parse () {
     const contentType = headers['Content-Type'] || headers['content-type']
+
+    if (!contentType) {
+      throw new Error('Content-Type missing in headers')
+    }
+
     const boundary = parseBoundary(contentType)
 
     const properties = parseProperties(boundary, body)

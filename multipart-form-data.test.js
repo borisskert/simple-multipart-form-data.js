@@ -151,3 +151,23 @@ test('should create header/body with two properties and a file and parse it afte
     }
   )
 })
+
+test('should not parse headers without content-type', t => {
+  const formData = MultipartFormData(
+    {},
+    '--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n--MySpecialBoundary--'
+  )
+
+  t.throws(() => { formData.parse() }, 'Content-Type missing in headers')
+})
+
+test('should not parse headers with incorrect content-type', t => {
+  const formData = MultipartFormData(
+    {
+      'Content-Type': 'application/json'
+    },
+    '--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n--MySpecialBoundary--'
+  )
+
+  t.throws(() => { formData.parse() }, 'Content-Type \'application/json\' is incorrect')
+})
