@@ -15,7 +15,7 @@ export function MultipartFormDataBuilder () {
       values.forEach(value => {
         multipartBody = Buffer.concat([
           multipartBody,
-          Buffer.from(`${delimiter}${crlf}Content-Disposition: form-data; name="${value.name}";${crlf}`),
+          Buffer.from(`${delimiter}${crlf}Content-Disposition: form-data; name="${value.name}"${crlf}`),
           Buffer.from(`${crlf}${value.value}`)
         ])
       })
@@ -112,7 +112,7 @@ export function MultipartFormData (headers, body) {
   }
 
   function matchFileLine (boundary, line) {
-    const linePattern = new RegExp(`(-[-]+${boundary}\r\nContent-Disposition: form-data; name="(.+)"; filename="(.+)"\r\nContent-Type: (.+)\r\n\r\n((?:.|\\n)*)\r\n)`, 'g')
+    const linePattern = new RegExp(`-[-]+${boundary}\r\nContent-Disposition: form-data; name="(.+)"; filename="(.+)"\r\nContent-Type: (.+)\r\n\r\n((?:.|\\n)*)\r\n`, 'g')
     return linePattern.exec(line)
   }
 
@@ -133,11 +133,11 @@ export function MultipartFormData (headers, body) {
     fileLines.map(line => matchFileLine(boundary, line))
       .filter(match => !!match)
       .forEach(match => {
-        const property = match[2]
+        const property = match[1]
         const file = {
-          filename: match[3],
-          mimeType: match[4],
-          data: Buffer.from(match[5])
+          filename: match[2],
+          mimeType: match[3],
+          data: Buffer.from(match[4])
         }
 
         files[property] ? files[property].push(file) : files[property] = [file]

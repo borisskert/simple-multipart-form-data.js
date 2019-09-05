@@ -1,5 +1,47 @@
 import test from 'ava'
-import { MultipartFormData } from './multipart-form-data'
+import { MultipartFormData, MultipartFormDataBuilder } from './multipart-form-data'
+
+test('should create header/body with one property', t => {
+  const formDataBuilder = MultipartFormDataBuilder()
+  formDataBuilder.append('my_key', 'my_value')
+  const formData = formDataBuilder.build()
+
+  const actualContentType = formData.headers['Content-Type']
+  t.regex(actualContentType, /multipart\/form-Data; boundary=--.+/gi)
+
+  const actualBoundary = /multipart\/form-Data; boundary=--(.+)/gi.exec(actualContentType)[1]
+
+  t.is(formData.body.toString(), `\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_key"\r\n\r\nmy_value\r\n----${actualBoundary}--`)
+})
+
+test('should create header/body with two properties', t => {
+  const formDataBuilder = MultipartFormDataBuilder()
+  formDataBuilder.append('my_key_one', 'my_value_one')
+  formDataBuilder.append('my_key_two', 'my_value_two')
+  const formData = formDataBuilder.build()
+
+  const actualContentType = formData.headers['Content-Type']
+  t.regex(actualContentType, /multipart\/form-Data; boundary=--.+/gi)
+
+  const actualBoundary = /multipart\/form-Data; boundary=--(.+)/gi.exec(actualContentType)[1]
+
+  t.is(formData.body.toString(), `\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n----${actualBoundary}--`)
+})
+
+test('should create header/body with two properties and a file', t => {
+  const formDataBuilder = MultipartFormDataBuilder()
+  formDataBuilder.append('my_key_one', 'my_value_one')
+  formDataBuilder.append('my_key_two', 'my_value_two')
+  formDataBuilder.appendFile('my_upload_file', Buffer.from('abc'), 'my-filename.txt', 'text/plain')
+  const formData = formDataBuilder.build()
+
+  const actualContentType = formData.headers['Content-Type']
+  t.regex(actualContentType, /multipart\/form-Data; boundary=--.+/gi)
+
+  const actualBoundary = /multipart\/form-Data; boundary=--(.+)/gi.exec(actualContentType)[1]
+
+  t.is(formData.body.toString(), `\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n----${actualBoundary}\r\nContent-Disposition: form-data; name="my_upload_file"; filename="my-filename.txt"\r\nContent-Type: text/plain\r\n\r\nabc\r\n----${actualBoundary}--`)
+})
 
 test('should parse body with one property', t => {
   const parsedBody = MultipartFormData(
@@ -82,4 +124,30 @@ test('should parse body with two properties and two files in two properties', t 
     mimeType: 'text/plain',
     data: Buffer.from('Apache License 2.0')
   }])
+})
+
+test('should create header/body with two properties and a file and parse it afterwards', t => {
+  const formDataBuilder = MultipartFormDataBuilder()
+  formDataBuilder.append('my_key_one', 'my_value_one')
+  formDataBuilder.append('my_key_two', 'my_value_two')
+  formDataBuilder.appendFile('my_upload_file', Buffer.from('abc'), 'my-filename.txt', 'text/plain')
+  const formData = formDataBuilder.build()
+
+  const parsedFormData = MultipartFormData(formData.headers, formData.body)
+    .parse()
+
+  t.deepEqual(
+    parsedFormData,
+    {
+      my_key_one: 'my_value_one',
+      my_key_two: 'my_value_two',
+      my_upload_file: [
+        {
+          filename: 'my-filename.txt',
+          data: Buffer.from('abc'),
+          mimeType: 'text/plain'
+        }
+      ]
+    }
+  )
 })
