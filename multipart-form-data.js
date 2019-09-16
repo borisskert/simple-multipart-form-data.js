@@ -76,7 +76,7 @@ export function MultipartFormData (headers, body) {
     const match = contentTypePattern.exec(contentType)
 
     if (!match) {
-      throw new Error(`Content-Type '${contentType}' is incorrect`)
+      throw new Error(`Unexpected Content-Type '${contentType}' (expecting: 'multipart/form-data')`)
     }
 
     return match[1]

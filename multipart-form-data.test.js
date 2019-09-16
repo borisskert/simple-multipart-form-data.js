@@ -169,5 +169,5 @@ test('should not parse headers with incorrect content-type', t => {
     '--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n--MySpecialBoundary--'
   )
 
-  t.throws(() => { formData.parse() }, 'Content-Type \'application/json\' is incorrect')
+  t.throws(() => { formData.parse() }, 'Unexpected Content-Type \'application/json\' (expecting: \'multipart/form-data\')')
 })
