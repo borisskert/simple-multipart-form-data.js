@@ -83,6 +83,24 @@ test('should parse body with two properties and a file', t => {
   }])
 })
 
+test('should parse body with longer properties and a (pseudo) binary file', t => {
+  const parsedBody = MultipartFormData(
+    {
+      'Content-Type': 'Multipart/Form-Data; boundary=--MySpecialBoundary'
+    },
+    '--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_one"\r\n\r\nmy_value_one\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_key_two"\r\n\r\nmy_value_two\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_recaptcha_response"\r\n\r\n03AOLTBLRdf41VsFrrPKInPVLLDkfNqixBfytxuKILrLh8HSIqlE0s9Zx5WZ8Jqqw6NQH8OiBEMHvO-0v6WI_RtDxmwEDHN8AXHw_OwJFus-cbdGJ1_Qcfmf0m2WZckiLa3YJm_iHoldWs_V92YLKIamPMNkLFmggMWe-ieikUWdCPiIEaGZxFvgScANKjtWxhCoFkAMTa9tsw0oK2Q8mijB_6b0uLahIgA4LdawVORWXju3IVMOYraT2feFVPmEnsnvh9M_4QZjwiLNt9PO8O4c3e36X6Oz_RXtA1_fCx3uzSILfhgaIU31JmAPuiJe1HjPehQYhsGLIf0vx4c-8PN5K_EOu0lzNxVbiKtQkVFlp79bPI5V1M2MRVjSZssdTrQY7PPslxTJzSJQgAoyBF8hJm_hHNmVUr62fd2TaqPkAOwSL_1gAftwj3_BtESXAPiQWSPQZg7C1O\r\n--MySpecialBoundary\r\nContent-Disposition: form-data; name="my_uploaded_file"; filename="image.png"\r\nContent-Type: image/png\r\n\r\n\t\0\n\r\r\n--MySpecialBoundary--'
+  ).parse()
+
+  t.is(parsedBody['my_key_one'], 'my_value_one')
+  t.is(parsedBody['my_key_two'], 'my_value_two')
+  t.is(parsedBody['my_recaptcha_response'], '03AOLTBLRdf41VsFrrPKInPVLLDkfNqixBfytxuKILrLh8HSIqlE0s9Zx5WZ8Jqqw6NQH8OiBEMHvO-0v6WI_RtDxmwEDHN8AXHw_OwJFus-cbdGJ1_Qcfmf0m2WZckiLa3YJm_iHoldWs_V92YLKIamPMNkLFmggMWe-ieikUWdCPiIEaGZxFvgScANKjtWxhCoFkAMTa9tsw0oK2Q8mijB_6b0uLahIgA4LdawVORWXju3IVMOYraT2feFVPmEnsnvh9M_4QZjwiLNt9PO8O4c3e36X6Oz_RXtA1_fCx3uzSILfhgaIU31JmAPuiJe1HjPehQYhsGLIf0vx4c-8PN5K_EOu0lzNxVbiKtQkVFlp79bPI5V1M2MRVjSZssdTrQY7PPslxTJzSJQgAoyBF8hJm_hHNmVUr62fd2TaqPkAOwSL_1gAftwj3_BtESXAPiQWSPQZg7C1O')
+  t.deepEqual(parsedBody['my_uploaded_file'], [{
+    filename: 'image.png',
+    mimeType: 'image/png',
+    data: Buffer.from('\t\0\n\r')
+  }])
+})
+
 test('should parse body with two properties and two files in one property', t => {
   const parsedBody = MultipartFormData(
     {

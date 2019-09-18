@@ -70,7 +70,7 @@ export function MultipartFormDataBuilder () {
   }
 }
 
-export function MultipartFormData (headers, body) {
+export function MultipartFormData (headers, rawBody) {
   function parseBoundary (contentType) {
     const contentTypePattern = /multipart\/form-data; boundary=-[-]+(.+)/gi
     const match = contentTypePattern.exec(contentType)
@@ -82,59 +82,24 @@ export function MultipartFormData (headers, body) {
     return match[1]
   }
 
-  function parsePropertyLines (body, boundary) {
-    const bodyPattern = new RegExp(`(-[-]+${boundary}\r\nContent-Disposition: form-data; name=".+"\r\n\r\n.*\r\n)`, 'g')
-    let matched = bodyPattern.exec(body)
-    const bodyLines = []
-
-    while (matched) {
-      const bodyLine = matched[1]
-      bodyLines.push(bodyLine)
-      matched = bodyPattern.exec(body)
-    }
-
-    return bodyLines
+  function splitLines(body, boundary) {
+    return body.split(new RegExp(`-[-]+${boundary}`, 'g'))
+      .filter(line => line !== '--')
   }
 
-  function parseFileLines (body, boundary) {
-    const bodyPattern = new RegExp(`(-[-]+${boundary}\r\nContent-Disposition: form-data; name=".+"; filename=".+"\r\nContent-Type: .+\r\n\r\n(?:.|\\n)*\r\n)`, 'g')
-    let matched = bodyPattern.exec(body)
-    const bodyLines = []
-
-    while (matched) {
-      const bodyLine = matched[1]
-      bodyLines.push(bodyLine)
-      matched = bodyPattern.exec(body)
-    }
-
-    return bodyLines
-  }
-
-  function matchPropertyLine (boundary, line) {
-    const linePattern = new RegExp(`-[-]+${boundary}\r\nContent-Disposition: form-data; name="(.+)"\r\n\r\n(.*)\r\n`, 'g')
-    return linePattern.exec(line)
-  }
-
-  function matchFileLine (boundary, line) {
-    const linePattern = new RegExp(`-[-]+${boundary}\r\nContent-Disposition: form-data; name="(.+)"; filename="(.+)"\r\nContent-Type: (.+)\r\n\r\n((?:.|\\n)*)\r\n`, 'g')
-    return linePattern.exec(line)
-  }
-
-  function parseProperties (boundary, body) {
-    const bodyLines = parsePropertyLines(body, boundary)
-
-    return bodyLines.map(line => matchPropertyLine(boundary, line))
+  function parsePropertyLines(lines) {
+    return lines
+      .map(line => new RegExp(`^\r\nContent-Disposition: form-data; name="(.+)"\r\n\r\n(.*)\r\n$`, 'g').exec(line))
       .filter(match => !!match)
       .map(match => ({ [match[1]]: match[2] }))
       .reduce((keyValuePair, obj) => ({ ...obj, ...keyValuePair }), {})
   }
 
-  function parseFiles (boundary, body) {
-    const fileLines = parseFileLines(body, boundary)
-
+  function parseFileLines(lines) {
     const files = {}
 
-    fileLines.map(line => matchFileLine(boundary, line))
+    lines
+      .map(line => new RegExp(`^\r\nContent-Disposition: form-data; name="(.+)"; filename="(.+)"\r\nContent-Type: (.+)\r\n\r\n((?:.)*)\r\n$`, 'gsmu').exec(line))
       .filter(match => !!match)
       .forEach(match => {
         const property = match[1]
@@ -159,8 +124,10 @@ export function MultipartFormData (headers, body) {
 
     const boundary = parseBoundary(contentType)
 
-    const properties = parseProperties(boundary, body)
-    const files = parseFiles(boundary, body)
+    const body = rawBody.toString()
+    const lines = splitLines(body, boundary)
+    const properties = parsePropertyLines(lines)
+    const files = parseFileLines(lines)
 
     return { ...properties, ...files }
   }
