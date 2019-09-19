@@ -82,12 +82,12 @@ export function MultipartFormData (headers, rawBody) {
     return match[1]
   }
 
-  function splitLines(body, boundary) {
+  function splitLines (body, boundary) {
     return body.split(new RegExp(`-[-]+${boundary}`, 'g'))
       .filter(line => line !== '--')
   }
 
-  function parsePropertyLines(lines) {
+  function parsePropertyLines (lines) {
     return lines
       .map(line => new RegExp(`^\r\nContent-Disposition: form-data; name="(.+)"\r\n\r\n(.*)\r\n$`, 'g').exec(line))
       .filter(match => !!match)
@@ -95,7 +95,7 @@ export function MultipartFormData (headers, rawBody) {
       .reduce((keyValuePair, obj) => ({ ...obj, ...keyValuePair }), {})
   }
 
-  function parseFileLines(lines) {
+  function parseFileLines (lines) {
     const files = {}
 
     lines
