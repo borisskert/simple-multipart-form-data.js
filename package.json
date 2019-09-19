@@ -4,7 +4,8 @@
   "description": "Simple builder to create form-data to be send via nodejs' http/https module without using any npm packages.",
   "scripts": {
     "test": "ava",
-    "lint": "standard \"**/*.js\" --fix"
+    "lint": "standard \"**/*.js\" --fix",
+    "stylecheck": "standard \"**/*.js\""
   },
   "devDependencies": {
     "ava": "^2.2.0",
